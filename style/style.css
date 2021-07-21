@@ -7,7 +7,22 @@ html, body{
     display: block;
 }
 body{
+    padding-left: 1%;
+    padding-top: 1%;
     background: black;
     color: white;
     font-family: 'Trebuchet MS', sans-serif;
+}
+div.nav{
+    padding-left: 0.5%;
+    padding-top: 0.5%;
+}
+div.main{
+    width: 6%;
+    padding-top: 1%;
+    padding-bottom: 1%;
+    margin: auto;
+    margin-top: 10%;
+    text-align: center;
+    background: #111;
 }
