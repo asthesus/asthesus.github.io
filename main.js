@@ -44,7 +44,7 @@ function drawCanvas() {
 
 function drawTiles() {
     for(x = -tilesize1 * 3; x < ww + tilesize1 * 3; x += tilesize1) {
-        for(y = -tilesize1 * 3; y < ww + tilesize1 * 3; y += tilesize1) {
+        for(y = -tilesize1 * 3; y < wh + tilesize1 * 3; y += tilesize1) {
             ctx.strokeStyle = tilecolour2;
             ctx.lineWidth = tilesize2;
             if(isEven(x / tilesize1)) {
