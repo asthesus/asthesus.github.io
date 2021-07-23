@@ -25,8 +25,7 @@ y_shift = 0;
 y_shift_interval = 1;
 
 tilesize1 = randomInteger(Math.round(wh / 40), Math.round(wh / 2));
-for(r = randomInteger(3, Math.round(wh / 2)); r > tilesize1 - 10; r = randomInteger(3, Math.round(wh / 2))) {};
-tilesize2 = r;
+tilesize2 = randomInteger(3, tilesize1 - 10);
 tilecolour1 = randomColour(0, 4);
 tilecolour2 = randomColour(7, 9);
 
