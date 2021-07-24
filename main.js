@@ -41,16 +41,16 @@ function isEven(n) {
 function drawCanvas() {
     ww = window.innerWidth;
     wh = window.innerHeight;
-    htmlCanvas.width = tilesize1 * 2;
-    htmlCanvas.height = tilesize1 * 2;
+    htmlCanvas.width = ww;
+    htmlCanvas.height = wh;
     ctx.fillStyle = tilecolour1;
     ctx.fillRect(0, 0, ww, wh);
 }
 
 function drawTiles(pattern) {
     if(pattern === `waves`) {
-        for(x = -tilesize1; x < tilesize1 * 3; x += tilesize1) {
-            for(y = -tilesize1; y < tilesize1 * 3; y += tilesize1) {
+        for(x = -tilesize1 * 3; x < ww + (tilesize1 * 3); x += tilesize1) {
+            for(y = -tilesize1 * 3; y < wh + (tilesize1 * 3); y += tilesize1) {
                 ctx.strokeStyle = tilecolour2;
                 ctx.lineWidth = tilesize2;
                 ctx.beginPath();
@@ -72,10 +72,6 @@ function drawAll() {
 
 window.addEventListener(`resize`, drawAll, false);
 
-document.getElementById(`c`).style.visibility = "hidden";
+// document.getElementById(`c`).style.transform = `scale(${randomNumber(-1, 1)}, ${randomNumber(-1, 1)})`;
 
 drawAll();
-
-img = new Image();
-img.src = htmlCanvas.toDataURL();
-document.body.style.backgroundImage = `url('`.concat(img.src, `')`);
