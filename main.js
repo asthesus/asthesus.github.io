@@ -72,6 +72,4 @@ function drawAll() {
 
 window.addEventListener(`resize`, drawAll, false);
 
-// document.getElementById(`c`).style.transform = `scale(${randomNumber(-1, 1)}, ${randomNumber(-1, 1)})`;
-
 drawAll();
