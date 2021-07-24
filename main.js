@@ -78,6 +78,4 @@ drawAll();
 
 img = new Image();
 img.src = htmlCanvas.toDataURL();
-str = `url('`.concat(img.src, `')`);
-document.body.style.backgroundImage = str;
-document.body.style.backgroundRepeat = `repeat`;
+document.body.style.backgroundImage = `url('`.concat(img.src, `')`);
