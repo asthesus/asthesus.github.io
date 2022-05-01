@@ -1,6 +1,8 @@
 const canvas_opaque = document.getElementById(`canvas1`);
-const canvas_transparent = document.getElementById(`canvas2`);
+const canvas_static_transparent = document.getElementById(`canvas2`);
+const canvas_transparent = document.getElementById(`canvas3`);
 const ctx_opaque = canvas_opaque.getContext(`2d`);
+const ctx_static_transparent = canvas_static_transparent.getContext(`2d`);
 const ctx_transparent = canvas_transparent.getContext(`2d`);
 const snail1_png = document.getElementById(`snail1_png`);
 const snail2_png = document.getElementById(`snail2_png`);
@@ -38,26 +40,7 @@ ctx_opaque.translate(0.5, 0.5);
 ctx_opaque.lineWidth = 1;
 ctx_transparent.translate(0.5, 0.5);
 ctx_transparent.lineWidth = 1;
-background = `#0a0a0a`;
-foreground = `#aaa`;
-canvas = {width: 0, height: 0, center: {x: 0, y: 0}};
-draw_background = () => {
-    ctx_opaque.fillStyle = background;
-    ctx_opaque.fillRect(0, 0, canvas_opaque.width, canvas_opaque.height);
-    draw_ground(`ff`);
-    draw_global_wireframe_back();
-}
-fit_canvas = () => {
-    canvas_opaque.width = window.innerWidth;
-    canvas_opaque.height = window.innerHeight;
-    canvas_transparent.width = window.innerWidth;
-    canvas_transparent.height = window.innerHeight;
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-    canvas.center.x = canvas_opaque.width / 2;
-    canvas.center.y = canvas_opaque.height / 2;
-    draw_background();
-}
+// global variables
 global_tick = 0;
 global_scale = 12;
 global_skew = 0.7;
@@ -69,8 +52,55 @@ z_boundary = 20;
 x_movement_boundary = 29.5;
 y_movement_boundary = 19;
 z_movement_boundary = 19.5;
-fish_starvation_cap = 200000;
-snail_starvation_cap = 200000;
+fish_starvation_cap = 1000000;
+snail_starvation_cap = 1000000;
+bubble = [];
+bubble_movement_cap = 0.025;
+food = [];
+static_food = [];
+food_cap = 500;
+fish = [];
+fish_food_requirement = 10;
+fish_movement_cap = 0.025;
+fish_cap = 200;
+snail = [];
+snail_food_requirement = 10;
+snail_movement_cap = 0.01;
+snail_cap = 500;
+shell = [];
+player_selection = {};
+time_speed = 1;
+cursor_x = 0;
+cursor_y = 0;
+background = `#0a0a0a`;
+foreground = `#aaa`;
+//
+const canvas = {width: 0, height: 0, center: {x: 0, y: 0}};
+const draw_background = () => {
+    ctx_opaque.fillStyle = background;
+    ctx_opaque.fillRect(0, 0, canvas_opaque.width, canvas_opaque.height);
+    draw_ground(`ff`);
+    draw_global_wireframe_back();
+    draw_static_transparent();
+}
+const draw_static_transparent = () => {
+    ctx_static_transparent.clearRect(0, 0, canvas.width, canvas.height);
+    draw_static_foods();
+    draw_shells();
+}
+const fit_canvas = () => {
+    canvas_opaque.width = window.innerWidth;
+    canvas_opaque.height = window.innerHeight;
+    canvas_static_transparent.width = window.innerWidth;
+    canvas_static_transparent.height = window.innerHeight;
+    canvas_transparent.width = window.innerWidth;
+    canvas_transparent.height = window.innerHeight;
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    canvas.center.x = canvas_opaque.width / 2;
+    canvas.center.y = canvas_opaque.height / 2;
+    draw_background();
+}
 const isometric_map = (x, y, z) => {
     mapped = {};
     mapped.x = (z * -global_scale) + (x * -global_scale);
@@ -130,8 +160,6 @@ const draw_water = () => {
     ctx_transparent.lineTo(a_mapped.x, a_mapped.y);
     ctx_transparent.fill();
 }
-bubble = [];
-bubble_movement_cap = 0.025;
 const new_bubble = (x, y, z) => {
     new_bubble_object = {x: x, y: y, z: z, maximum: Math.ceil(Math.random() * 20), size: 2};
     new_bubble_object.movement = {x: (Math.random() * 2 - 1) * 0.01, y: (Math.random() * 2 - 1) * 0.01, z: (Math.random() * 2 - 1) * 0.01};
@@ -171,8 +199,6 @@ const draw_bubbles = () => {
         ctx_transparent.stroke();
     }
 }
-food = [];
-static_food = [];
 const new_food = (x, z) => {
     new_food_object = {x: x, y: -y_boundary, z: z};
     new_food_object.movement = {x: (Math.random() * 2 - 1) * 0.01, y: (Math.random() * 2 - 1) * 0.01, z: (Math.random() * 2 - 1) * 0.01};
@@ -194,6 +220,7 @@ const age_food = (food_moved, integer) => {
         food_moved.movement.y = 0;
         food.splice(integer, 1);
         static_food.push(food_moved);
+        draw_static_food(static_food.length - 1);
     }
     if(food_moved.y < -y_boundary) {food_moved.y = -y_boundary; food_moved.movement.y /= 2};
 }
@@ -207,16 +234,12 @@ const draw_foods = () => {
         ctx_transparent.fillRect(mapped.x, mapped.y, 1, 1);
     }
 }
-const draw_static_foods = () => {
-    for(i = 0; i < static_food.length; i++) {
-        ctx_transparent.fillStyle = `#660`;
-        mapped = isometric_map(static_food[i].x, y_boundary, static_food[i].z);
-        ctx_transparent.fillRect(mapped.x, mapped.y, 1, 1);
-    }
+const draw_static_food = (integer) => {
+    ctx_static_transparent.fillStyle = `#660`;
+    mapped = isometric_map(static_food[integer].x, y_boundary, static_food[integer].z);
+    ctx_static_transparent.fillRect(mapped.x, mapped.y, 1, 1);
 }
-fish = [];
-fish_food_requirement = 10;
-fish_movement_cap = 0.025;
+const draw_static_foods = () => {for(i = 0; i < static_food.length; i++) draw_static_food(i)};
 const new_fish = (x, y, z) => {
     movement_x = (Math.random() * 2 - 1) * 0.01;
     movement_y = (Math.random() * 2 - 1) * 0.001;
@@ -273,19 +296,19 @@ const age_fish = (fish_moved, integer) => {
             ii--;
         }
     }
-    for(ii = 0; ii < static_food.length; ii++) {
-        distance_from_food = Math.sqrt((Math.abs(fish_moved.x - static_food[ii].x) ** 2) + (Math.abs(fish_moved.y - static_food[ii].y) ** 2) + (Math.abs(fish_moved.z - static_food[ii].z) ** 2));
-        if(distance_from_food <= 1) {
-            static_food.splice(ii, 1);
-            fed = true;
-            ii--;
-        }
-    }
+    // for(ii = 0; ii < static_food.length; ii++) {
+    //     distance_from_food = Math.sqrt((Math.abs(fish_moved.x - static_food[ii].x) ** 2) + (Math.abs(fish_moved.y - static_food[ii].y) ** 2) + (Math.abs(fish_moved.z - static_food[ii].z) ** 2));
+    //     if(distance_from_food <= 1) {
+    //         static_food.splice(ii, 1);
+    //         fed = true;
+    //         ii--;
+    //     }
+    // }
     if(fed) {
         fish_moved.food++;
         fish.starvation = 0;
     }
-    if(fed && fish_moved.food >= fish_food_requirement) {
+    if(fed && fish_moved.food >= fish_food_requirement && fish.length < fish_cap) {
         fish_moved.food = 0;
         new_fish(fish_moved.x, fish_moved.y, fish_moved.z);
     }
@@ -374,13 +397,10 @@ const draw_fish = (integer) => {
 const draw_fishes = () => {
     for(i = 0; i < fish.length; i++) draw_fish(i);
 }
-snail = [];
-snail_food_requirement = 10;
-snail_movement_cap = 0.01;
 const new_snail = (x, z) => {
     movement_x = (Math.random() * 2 - 1) * 0.001;
     movement_z = (Math.random() * 2 - 1) * 0.001;
-    new_snail_object = {x: x, y: y_boundary, z: z, movement: {x: movement_x, z: movement_z}, starvation: 0, food: 0, move_cycle: 0};
+    new_snail_object = {x: x, y: y_boundary, z: z, movement: {x: movement_x, y: 0, z: movement_z}, starvation: 0, food: 0, move_cycle: 0};
     new_snail_object.starvation += Math.random() * snail_starvation_cap * 0.5;
     snail.push(new_snail_object);
 }
@@ -391,12 +411,13 @@ const random_snail = (quantity) => {
         new_snail(x, z);
     }
 }
-shell = [];
 const kill_snail = (integer) => {
     new_shell_object = {x: snail[integer].x, y: y_boundary, z: snail[integer].z, facing: snail[integer].movement};
     bubble_burst(snail[integer].x, y_boundary, snail[integer].z, Math.floor(Math.random() * 3) + 2);
     shell.push(new_shell_object);
     snail.splice(integer, 1);
+    debugger;
+    draw_shell(shell.length - 1);
 }
 const age_snail = (snail_moved, integer) => {
     snail_moved.starvation++;
@@ -431,7 +452,7 @@ const age_snail = (snail_moved, integer) => {
         snail_moved.food++;
         snail.starvation = 0;
     }
-    if(fed && snail_moved.food >= snail_food_requirement) {
+    if(fed && snail_moved.food >= snail_food_requirement && snail.length < snail_cap) {
         snail_moved.food = 0;
         new_snail(snail_moved.x, snail_moved.z);
     }
@@ -491,9 +512,9 @@ const draw_snails = () => {
 }
 const draw_shell = (integer) => {
     mapped = isometric_map(shell[integer].x, y_boundary, shell[integer].z);
-    if(shell[i].facing.x <= 0) {
-        if(shell[i].facing.z <= 0) {
-            if(shell[i].facing.x / shell[i].facing.z <= 1) {
+    if(shell[integer].facing.x <= 0) {
+        if(shell[integer].facing.z <= 0) {
+            if(shell[integer].facing.x / shell[integer].facing.z <= 1) {
                 // east
                 shell_image = shell8_png;
             } else {
@@ -501,7 +522,7 @@ const draw_shell = (integer) => {
                 shell_image = shell4_png;
             }
         } else {
-            if(shell[i].facing.x / shell[i].facing.z <= -1) {
+            if(shell[integer].facing.x / shell[integer].facing.z <= -1) {
                 // north
                 shell_image = shell7_png;
             } else {
@@ -510,8 +531,8 @@ const draw_shell = (integer) => {
             }
         }
     } else {
-        if(shell[i].facing.z <= 0) {
-            if(shell[i].facing.x / shell[i].facing.z <= -1) {
+        if(shell[integer].facing.z <= 0) {
+            if(shell[integer].facing.x / shell[integer].facing.z <= -1) {
                 // south
                 shell_image = shell5_png;
             } else {
@@ -519,7 +540,7 @@ const draw_shell = (integer) => {
                 shell_image = shell2_png;
             }
         } else {
-            if(shell[i].facing.x / shell[i].facing.z <= 1) {
+            if(shell[integer].facing.x / shell[integer].facing.z <= 1) {
                 // west
                 shell_image = shell6_png;
             } else {
@@ -528,10 +549,19 @@ const draw_shell = (integer) => {
             }
         }
     }
-    ctx_transparent.drawImage(shell_image, mapped.x - 16, mapped.y - 25);
+    ctx_static_transparent.drawImage(shell_image, mapped.x - 16, mapped.y - 25);
 }
 const draw_shells = () => {
     for(i = 0; i < shell.length; i++) draw_shell(i);
+}
+const draw_vector = (x1, y1, z1, x2, y2, z2) => {
+    mapped1 = isometric_map(x1, y1, z1);
+    mapped2 = isometric_map(x1 + x2 * 500, y1 + y2 * 500, z1 + z2 * 500);
+    ctx_transparent.strokeStyle = `#ffffff80`;
+    ctx_transparent.beginPath();
+    ctx_transparent.moveTo(mapped1.x, mapped1.y);
+    ctx_transparent.lineTo(mapped2.x, mapped2.y);
+    ctx_transparent.stroke();
 }
 const draw_axis = (x, y, z) => {
     x_axis_start = isometric_map(-x_boundary, y, z);
@@ -555,6 +585,7 @@ const draw_axis = (x, y, z) => {
     ctx_transparent.moveTo(z_axis_start.x, z_axis_start.y);
     ctx_transparent.lineTo(z_axis_end.x, z_axis_end.y);
     ctx_transparent.stroke();
+    // selection circle
     // mapped = isometric_map(x, y, z);
     // ctx_transparent.strokeStyle = `#ffffff80`
     // ctx_transparent.beginPath();
@@ -626,7 +657,6 @@ const draw_global_wireframe_front = () => {
     ctx_transparent.lineTo(g_mapped.x, g_mapped.y);
     ctx_transparent.stroke();
 }
-player_selection = {};
 const cursor_select = () => {
     let selected_object = 0;
     let selected_array = [];
@@ -658,7 +688,7 @@ const cursor_select = () => {
 const sub_time = () => {
     ctx_transparent.clearRect(0, 0, canvas.width, canvas.height);
     mapped_cursor = flat_map(cursor_x, cursor_y + canvas.center.y / 2);
-    if(!(mapped_cursor.x < -x_boundary || mapped_cursor.x > x_boundary || mapped_cursor.z < -z_boundary || mapped_cursor.z > z_boundary)) {
+    if(food.length < food_cap && !(mapped_cursor.x < -x_boundary || mapped_cursor.x > x_boundary || mapped_cursor.z < -z_boundary || mapped_cursor.z > z_boundary)) {
         new_food(mapped_cursor.x, mapped_cursor.z);
         // new_bubble(mapped_cursor.x, y_boundary, mapped_cursor.z);
     }
@@ -677,9 +707,10 @@ const sub_time = () => {
     // } else {
     //     new_food(mapped_cursor.x, mapped_cursor.z);
     // }
-    if(player_selection.x !== undefined) draw_axis(player_selection.x, player_selection.y, player_selection.z);
-    
-    // new_bubble(mapped_cursor.x, y_boundary, mapped_cursor.z);
+    if(player_selection.x !== undefined) {
+        draw_vector(player_selection.x, player_selection.y, player_selection.z, player_selection.movement.x, player_selection.movement.y, player_selection.movement.z);
+        draw_axis(player_selection.x, player_selection.y, player_selection.z);
+    }
     age_foods();
     age_fishes();
     age_snails();
@@ -689,8 +720,6 @@ const sub_time = () => {
         global_tick = 0;
         draw_ground(`32`);
     }
-    draw_static_foods();
-    draw_shells();
     draw_snails();
     draw_foods();
     draw_fishes();
@@ -698,15 +727,12 @@ const sub_time = () => {
     draw_water();
     draw_global_wireframe_front();
 }
-time_speed = 1;
 const time = () => {
     window.requestAnimationFrame(time);
-    // for(zips = 0; zips < time_speed; zips++) {
+    for(zips = 0; zips < time_speed; zips++) {
         sub_time();
-    // }
+    }
 }
-cursor_x = 0;
-cursor_y = 0;
 canvas_transparent.addEventListener(`mousedown`, e => {
     cursor_x = e.clientX - canvas.center.x;
     cursor_y = e.clientY - canvas.center.y;
