@@ -446,6 +446,7 @@ const age_snail = (snail_moved, integer) => {
             static_food.splice(ii, 1);
             ii--;
             fed = true;
+            draw_static_transparent();
         }
     }
     if(fed) {
