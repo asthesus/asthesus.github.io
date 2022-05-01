@@ -69,8 +69,8 @@ z_boundary = 20;
 x_movement_boundary = 29.5;
 y_movement_boundary = 19;
 z_movement_boundary = 19.5;
-fish_starvation_cap = 100000;
-snail_starvation_cap = 100000;
+fish_starvation_cap = 200000;
+snail_starvation_cap = 200000;
 const isometric_map = (x, y, z) => {
     mapped = {};
     mapped.x = (z * -global_scale) + (x * -global_scale);
@@ -555,6 +555,11 @@ const draw_axis = (x, y, z) => {
     ctx_transparent.moveTo(z_axis_start.x, z_axis_start.y);
     ctx_transparent.lineTo(z_axis_end.x, z_axis_end.y);
     ctx_transparent.stroke();
+    // mapped = isometric_map(x, y, z);
+    // ctx_transparent.strokeStyle = `#ffffff80`
+    // ctx_transparent.beginPath();
+    // ctx_transparent.arc(mapped.x, mapped.y, 16, 0, Math.PI * 2);
+    // ctx_transparent.stroke();
 }
 const draw_global_wireframe_back = () => {
     //     h
